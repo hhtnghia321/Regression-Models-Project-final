@@ -1,0 +1,74 @@
+---
+title: "Regression Model Project"
+author: "Leonard Huynh"
+date: "10/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Summary
+
+
+
+## Data introduction
+> The data was extracted from the 1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles (1973–74 models).
+
+* ### **Variable** 
+1. mpg:	Miles/(US) gallon
+2. cyl:	Number of cylinders
+3. disp:	Displacement (cu.in.)
+4. hp:	Gross horsepower
+5. drat:	Rear axle ratio
+6. wt:	Weight (1000 lbs)
+7. qsec:	1/4 mile time
+8. vs:	Engine (0 = V-shaped, 1 = straight)
+9. am:	Transmission (0 = automatic, 1 = manual)
+10. gear:	Number of forward gears
+11. carb:	Number of carburetors
+
+
+## Library load
+```{r ,message=FALSE}
+library(dplyr)
+library(datasets)
+library(psych)
+library(shiny)
+library(ggplot2)
+library(manipulate)
+mtcars -> data
+```
+
+## Exploratoty analysis
+```{r}
+#Missing value check
+sum(is.na(data))
+
+#summary data
+dim(data)
+head(data)
+summary(data)
+
+#overview target variables
+Mpg.am <- cbind(automatic =data[data$am == 1, ]$mpg, manual = data[data$am == 0,]$mpg)
+boxplot(Mpg.am , xlab = "am", ylab = "mpg", main= "mpg by am ploting")
+
+pairs.panels(data[, c(1:6,9)])
+
+manipulate(
+  
+  ggplot(data = data, aes(y= mpg, x = data[,vars] )) + geom_point(aes(color = as.factor(am) )),
+  vars = picker("wt", "drat", "disp","cyl" , "hp")
+)
+```
+
+* From the paire plot we see that "mpg", "am" and "disp" variables have the relationship with "drat" and "wt". So we will those two variables in the model to avoid bias coefficients estimation
+
+
+## Statistical inference
+**Models Selection and Diagnostics**
+
+**Models intepretation**
+
+**Detail Analysis**
