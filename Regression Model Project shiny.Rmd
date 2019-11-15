@@ -1,0 +1,113 @@
+---
+title: "Regression Model Project"
+author: "Leonard Huynh"
+date: "10/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Summary
+
+
+
+## Data introduction
+> The data was extracted from the 1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles (1973–74 models).
+
+* ### **Variable** 
+1. mpg:	Miles/(US) gallon
+2. cyl:	Number of cylinders
+3. disp:	Displacement (cu.in.)
+4. hp:	Gross horsepower
+5. drat:	Rear axle ratio
+6. wt:	Weight (1000 lbs)
+7. qsec:	1/4 mile time
+8. vs:	Engine (0 = V-shaped, 1 = straight)
+9. am:	Transmission (0 = automatic, 1 = manual)
+10. gear:	Number of forward gears
+11. carb:	Number of carburetors
+
+
+## Library load
+```{r ,message=FALSE}
+library(dplyr)
+library(datasets)
+library(psych)
+library(shiny)
+library(ggplot2)
+library(manipulate)
+library(car)
+mtcars -> data
+```
+
+## Exploratoty analysis
+```{r, warning=FALSE}
+#Missing value check
+sum(is.na(data))
+
+#summary data
+head(data)
+summary(data)
+table(data$am)
+
+#overview target variables
+Mpg.am <- cbind(automatic =data[data$am == 1, ]$mpg, manual = data[data$am == 0,]$mpg)
+boxplot(Mpg.am , xlab = "am", ylab = "mpg", main= "mpg by am ploting")
+
+pairs.panels(data[,c(1:6,9)])
+
+```
+
+* From the paire plot we see that "mpg", "am"  variables have the relationship with "drat", "disp", "wt". So we will those two variables in the model to avoid bias coefficients estimation
+* Since the transmission type and engine parameter (drat, disp, am), I exclude "wt from our model
+```{r}
+ggplot(data = data, aes(y= mpg, x = drat)) + 
+    geom_point() + 
+    facet_grid(cols = vars(factor(data$am, labels = c("Automatics", "Manuals")))) +
+    labs(title = "Interactive Chart", x = "Drat", size = 12) 
+```
+
+## Statistical inference
+**Models Selection**
+* I assummed the model will be the multiple linear models since the outcome is continuous
+* I used the Anova test method as the model selection method 
+
+```{r}
+#define suggested model
+fit1 <- lm(mpg ~ am , data = data )
+fit2 <- lm(mpg ~ am + drat , data = data )
+fit3 <- lm(mpg ~ am + disp, data = data )
+fit4 <- lm(mpg ~ am + disp + drat, data = data )
+
+#VIF for spotting variance imflated variables
+vif(fit2)
+vif(fit3)
+vif(fit4)
+```
+* As can see from VIF test that "drat" both affect "am" and "disp" which means it would be bias if I exclude the "drat" variable
+
+```{r}
+#Anova test
+anova(fit1, fit4)
+```
+* The RSS decrease dramatically when I included both "disp" and "drat" to the model and also it makes the model more significant.
+
+**Diagnostics**
+```{r}
+plot(fit4)
+```
+
+ > * The Residual vs Fitted plot and the Scale-Location shown that there might be some pettern which haven't explained by the model
+* the assumption of normality residual is acquired
+* The Residual vs Leverage plot shown there is no severe outlier which could dramatically influent the model when it is excluded
+
+**Models intepretation**
+```{r}
+summary(fit4)
+```
+> the "disp" variable is the only significant variable. The R^2 is 0.73 with the p-value >> 0.05 which mean the model is significant. 
+
+**Detail Analysis**
+
+> If the "am" variable is "automatics" (1), the "mpg" will be 23.7 + 1,31, otherwise, the "mpg" will be 23.7 keeping all others variables at 0. However, the "am" variable is not significant in term of explaining the "mpg" in this model. The only variables that are significant is the "disp" which measure the displacement of the 

@@ -41,14 +41,14 @@ mtcars -> data
 ```
 
 ## Exploratoty analysis
-```{r}
+```{r, warning=FALSE}
 #Missing value check
 sum(is.na(data))
 
 #summary data
-dim(data)
 head(data)
 summary(data)
+table(data$am)
 
 #overview target variables
 Mpg.am <- cbind(automatic =data[data$am == 1, ]$mpg, manual = data[data$am == 0,]$mpg)
@@ -56,15 +56,19 @@ boxplot(Mpg.am , xlab = "am", ylab = "mpg", main= "mpg by am ploting")
 
 pairs.panels(data[, c(1:6,9)])
 
-manipulate(
-  
-  ggplot(data = data, aes(y= mpg, x = data[,vars] )) + geom_point(aes(color = as.factor(am) )),
-  vars = picker("wt", "drat", "disp","cyl" , "hp")
-)
 ```
 
 * From the paire plot we see that "mpg", "am" and "disp" variables have the relationship with "drat" and "wt". So we will those two variables in the model to avoid bias coefficients estimation
+```{r, echo=FALSE}
+selectInput("vars", label = "Select Variables", choices = c("wt", "drat", "disp"), selected = "wt" )
 
+
+renderPlot({
+  ggplot(data = data, aes(y= mpg, x = data[,input$vars],color = factor(am,labels = c("automatic", "manual") ))) + 
+    geom_point() + 
+    labs(title = "Interactive Chart", x = input$vars, size = 12, col = "Transmission") 
+})
+```
 
 ## Statistical inference
 **Models Selection and Diagnostics**
